@@ -137,3 +137,21 @@ svg { display: block; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- Clave de acceso (solo la ven los padres, la primera vez) ---------- */
+#candado { position: fixed; inset: 0; z-index: 30; display: none; place-items: center; background: var(--noche); padding: 24px; }
+#candado.visible { display: grid; }
+#form-clave { width: min(100%, 360px); display: flex; flex-direction: column; align-items: center; gap: 16px; }
+#form-clave .icono-candado { width: 72px; height: 72px; color: var(--luna); }
+#form-clave label { font-size: 1.125rem; font-weight: 600; }
+#campo-clave {
+  width: 100%; padding: 14px 16px; border-radius: 12px; border: 3px solid rgba(243,240,255,.35);
+  background: var(--noche-alta); color: var(--nube); font: inherit; font-size: 1rem; user-select: text; -webkit-user-select: text;
+}
+#campo-clave:focus { outline: none; border-color: var(--luna); }
+#form-clave .mal { display: none; margin: 0; color: #FF8FAB; text-align: center; font-size: .95rem; }
+#candado.error .mal { display: block; }
+#form-clave button[type=submit] {
+  width: 100%; padding: 14px; border-radius: 12px; background: var(--luna); color: var(--noche);
+  font-weight: 700; font-size: 1.05rem; box-shadow: 0 5px 0 var(--luna-sombra);
+}

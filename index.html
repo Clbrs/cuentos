@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: https://drive.google.com https://*.googleusercontent.com; media-src 'self' blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#232552">
@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icono-192.png">
 <link rel="apple-touch-icon" href="icono-180.png">
-<link rel="stylesheet" href="app.css?v=4">
+<link rel="stylesheet" href="app.css?v=5">
 </head>
 <body>
 
@@ -53,8 +53,18 @@
   </button>
 </div>
 
+<div id="candado" role="dialog" aria-modal="true" aria-labelledby="titulo-clave">
+  <form id="form-clave" autocomplete="off">
+    <svg class="icono-candado" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+    <label id="titulo-clave" for="campo-clave">Clave de acceso</label>
+    <input id="campo-clave" type="password" inputmode="text" autocapitalize="off" spellcheck="false" required>
+    <p class="mal" role="alert">Esa clave no vale. Cópiala otra vez del registro del script.</p>
+    <button type="submit">Entrar</button>
+  </form>
+</div>
+
 <audio id="audio" preload="auto"></audio>
 
-<script src="app.js?v=4" defer></script>
+<script src="app.js?v=5" defer></script>
 </body>
 </html>
