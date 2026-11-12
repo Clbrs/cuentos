@@ -1,6 +1,6 @@
 // Guarda la app para que abra rápido y sin conexión. Carátulas y audios los guarda la propia app.
-const VERSION = 'cuentos-v5';
-const APP = ['./', 'index.html', 'app.js?v=5', 'app.css?v=5', 'manifest.webmanifest', 'icono-192.png', 'icono-512.png', 'icono-180.png'];
+const VERSION = 'cuentos-v6';
+const APP = ['./', 'index.html', 'app.js?v=6', 'app.css?v=6', 'manifest.webmanifest', 'icono-192.png', 'icono-512.png', 'icono-180.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(APP))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSION && k !== 'caratulas' && k !== 'audios').map(k => caches.delete(k)))));

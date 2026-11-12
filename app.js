@@ -157,7 +157,10 @@ async function blobAudio(c) {
 
 // ---------- Catálogo ----------
 async function cargarCatalogo() {
-  if (!MODO_PRUEBA && !clave()) { mostrarCandado(false); return; }
+  if (!MODO_PRUEBA && !clave()) {   // sin clave no se enseña nada, ni lo que guardaran versiones anteriores
+    borrar(LS_CAT); if ('caches' in window) caches.delete('caratulas').catch(() => {});
+    mostrarCandado(false); return;
+  }
   const guardado = limpiarCatalogo(leer(LS_CAT, null));
   if (guardado.length) { cuentos = guardado; pintar(); }
   try {
