@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: https://drive.google.com https://*.googleusercontent.com; media-src 'self' https://drive.google.com https://drive.usercontent.google.com https://*.googleusercontent.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#232552">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Cuentos</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icono-192.png">
+<link rel="apple-touch-icon" href="icono-180.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<main id="estanteria">
+  <button id="continuar" aria-label="Seguir escuchando">
+    <span class="libro"><img alt=""></span>
+    <span class="play-mini">
+      <svg class="aro" viewBox="0 0 100 100" aria-hidden="true"><circle class="fondo" cx="50" cy="50" r="46"/><circle class="hecho" cx="50" cy="50" r="46" pathLength="100" stroke-dasharray="0 100"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5v17a1 1 0 0 0 1.5.86l14-8.5a1 1 0 0 0 0-1.72l-14-8.5A1 1 0 0 0 6 3.5z" fill="currentColor"/></svg>
+    </span>
+  </button>
+  <ul id="rejilla"></ul>
+</main>
+
+<section id="reproductor" aria-label="Reproductor">
+  <button id="volver" aria-label="Volver a los cuentos">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4 7 12l8 8" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <div id="grande"><span class="libro"><img alt=""></span></div>
+  <div id="mandos">
+    <div id="barra" aria-hidden="true"><div></div></div>
+    <div id="fila">
+      <button class="pequeno" id="atras" aria-label="Retroceder 15 segundos">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 6 4 12l7 6zM20 6l-7 6 7 6z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="play" aria-label="Reproducir o pausar">
+        <svg class="icono-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5v17a1 1 0 0 0 1.5.86l14-8.5a1 1 0 0 0 0-1.72l-14-8.5A1 1 0 0 0 6 3.5z" fill="currentColor"/></svg>
+        <svg class="icono-pausa" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="5" height="17" rx="1.6" fill="currentColor"/><rect x="14" y="3.5" width="5" height="17" rx="1.6" fill="currentColor"/></svg>
+      </button>
+      <span class="pequeno hueco" aria-hidden="true"></span>
+    </div>
+  </div>
+</section>
+
+<div id="aviso" role="alert">
+  <button id="reintentar" aria-label="Sin conexión. Tocar para reintentar">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1.2" fill="currentColor"/><path d="M3 3l18 18" stroke-width="2.6"/></g></svg>
+  </button>
+</div>
+
+<audio id="audio" preload="auto"></audio>
+
+<script src="app.js" defer></script>
+</body>
+</html>
