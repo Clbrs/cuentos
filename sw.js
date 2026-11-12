@@ -1,9 +1,9 @@
 // Guarda la app y las carátulas para que abra rápido. Los audios siempre llegan de Drive.
-const VERSION = 'cuentos-v2';
+const VERSION = 'cuentos-v3';
 const APP = ['./', 'index.html', 'app.js', 'app.css', 'manifest.webmanifest', 'icono-192.png', 'icono-512.png', 'icono-180.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(APP))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSION && k !== 'caratulas').map(k => caches.delete(k)))));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSION && k !== 'caratulas' && k !== 'audios').map(k => caches.delete(k)))));
   self.clients.claim();
 });
 self.addEventListener('fetch', e => {

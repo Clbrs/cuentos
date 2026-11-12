@@ -1,6 +1,6 @@
 'use strict';
 // ===== Configuración: URL de la aplicación web de Apps Script (termina en /exec) =====
-const URL_CATALOGO = '';
+const URL_CATALOGO = 'https://script.google.com/macros/s/AKfycbybvx-jbQmZWSXjJlC5nvC3MPJ1PjDlK9tEYGN04hALuRwuSAGoYgHjSM6bJzZxAXy4/exec';
 // =====================================================================================
 
 const $ = s => document.querySelector(s);
@@ -8,6 +8,8 @@ const audio = $('#audio');
 const LS_PROG = 'cuentos.progreso', LS_CAT = 'cuentos.catalogo';
 const MAX_CUENTOS = 2000;
 const MODO_PRUEBA = !URL_CATALOGO || new URLSearchParams(location.search).has('local');
+const URL_SCRIPT = (MODO_PRUEBA && new URLSearchParams(location.search).get('script')) || URL_CATALOGO;  // solo pruebas locales
+const MAX_AUDIOS_GUARDADOS = 15;   // cuentos que se quedan en la tablet para abrir al instante
 let cuentos = [], actual = null, ultimoGuardado = 0;
 
 const leer = (k, def) => { try { return JSON.parse(localStorage.getItem(k)) ?? def; } catch { return def; } };
@@ -39,7 +41,33 @@ function limpiarCatalogo(lista) {
 }
 
 const urlCaratula = c => c.caratulaUrl || (c.caratula ? `https://drive.google.com/thumbnail?id=${c.caratula}&sz=w600` : null);
-const urlAudio = c => c.audioUrl || `https://drive.usercontent.google.com/download?id=${c.audio}&export=download`;
+
+// ---------- Audio: lo entrega el script de Drive (Drive ya no deja reproducir enlaces directos) ----------
+const claveAudio = id => new URL(`audio-guardado/${id}`, location.href).href;
+function recordarAudio(id) {
+  let lista = leer('cuentos.audios', []);
+  if (!Array.isArray(lista)) lista = [];
+  lista = [id, ...lista.filter(x => x !== id)];
+  const sobran = lista.slice(MAX_AUDIOS_GUARDADOS);
+  escribir('cuentos.audios', lista.slice(0, MAX_AUDIOS_GUARDADOS));
+  if (sobran.length && 'caches' in window) caches.open('audios').then(c => sobran.forEach(x => c.delete(claveAudio(x)))).catch(() => {});
+}
+async function blobAudio(c) {
+  const cache = 'caches' in window ? await caches.open('audios').catch(() => null) : null;
+  const guardado = cache && await cache.match(claveAudio(c.audio)).catch(() => null);
+  if (guardado) { recordarAudio(c.audio); return guardado.blob(); }
+  const r = await fetch(`${URL_SCRIPT}${URL_SCRIPT.includes('?') ? '&' : '?'}audio=${encodeURIComponent(c.audio)}`,
+    { cache: 'no-store', credentials: 'omit' });
+  if (!r.ok) throw new Error('audio ' + r.status);
+  const b64 = (await r.text()).trim();
+  if (!/^[A-Za-z0-9+/]+=*$/.test(b64) || b64.length > 60e6) throw new Error('audio no válido');
+  const bin = atob(b64), bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const blob = new Blob([bytes], { type: 'audio/mpeg' });
+  if (cache) { await cache.put(claveAudio(c.audio), new Response(blob, { headers: { 'Content-Type': 'audio/mpeg' } })).catch(() => {}); recordarAudio(c.audio); }
+  return blob;
+}
+let urlBlobActual = null, peticion = 0;
 
 // ---------- Catálogo ----------
 async function cargarCatalogo() {
@@ -132,19 +160,32 @@ function guardarProgreso(forzar) {
 function borrarProgreso(n) { const p = progresos(); delete p[n]; escribir(LS_PROG, p); }
 
 // ---------- Reproductor ----------
-function abrir(n) {
+async function abrir(n) {
   const c = cuentos.find(x => x.n === Number(n)); if (!c) return;
   if (actual && actual.n === c.n && audio.src) { mostrarReproductor(c); audio.play().catch(() => {}); return; }
   guardarProgreso(true);
+  audio.pause();
   actual = c;
+  const mia = ++peticion;
   mostrarReproductor(c);
   const p = progresos()[c.n];
-  audio.src = urlAudio(c);
   const inicio = aMedias(p) ? p.t : 0;
-  if (inicio) audio.addEventListener('loadedmetadata', () => { audio.currentTime = inicio; }, { once: true });
   $('#barra div').style.width = inicio && p.d ? (inicio / p.d * 100) + '%' : '0%';
   $('#play').classList.add('cargando');
-  audio.play().catch(() => $('#play').classList.remove('cargando'));
+  let src;
+  try {
+    src = c.audioUrl || URL.createObjectURL(await blobAudio(c));
+  } catch {
+    if (mia === peticion) { $('#play').classList.remove('cargando'); mostrarAviso(true); }
+    return;
+  }
+  if (mia !== peticion || actual !== c) { if (!c.audioUrl) URL.revokeObjectURL(src); return; }  // ya eligieron otro
+  if (urlBlobActual) URL.revokeObjectURL(urlBlobActual);
+  urlBlobActual = c.audioUrl ? null : src;
+  audio.src = src;
+  if (inicio) audio.addEventListener('loadedmetadata', () => { audio.currentTime = inicio; }, { once: true });
+  if ($('#reproductor').classList.contains('abierto')) audio.play().catch(() => $('#play').classList.remove('cargando'));
+  else $('#play').classList.remove('cargando');
   if ('mediaSession' in navigator) {
     const art = urlCaratula(c);
     navigator.mediaSession.metadata = new MediaMetadata({ title: c.titulo || 'Cuento', artist: 'Cuentos',
@@ -157,6 +198,7 @@ function mostrarReproductor(c) {
   history.pushState({ reproductor: true }, '');
 }
 function cerrar(desdeHistorial) {
+  peticion++;
   guardarProgreso(true);
   audio.pause();
   $('#reproductor').classList.remove('abierto');
