@@ -8,7 +8,8 @@ const audio = $('#audio');
 const LS_PROG = 'cuentos.progreso', LS_CAT = 'cuentos.catalogo', LS_CLAVE = 'cuentos.clave', LS_AUDIOS = 'cuentos.audios';
 const MAX_CUENTOS = 2000;
 const MAX_AUDIOS_GUARDADOS = 15;     // cuentos que se quedan en la tablet para abrir al instante
-const CARATULAS_POR_PETICION = 25;
+const CARATULAS_POR_PETICION = 8;    // carátulas por petición al script
+const PETICIONES_A_LA_VEZ = 4;       // peticiones en paralelo (Apps Script admite hasta 30)
 const params = new URLSearchParams(location.search);
 const MODO_PRUEBA = !URL_CATALOGO || params.has('local');
 const URL_SCRIPT = (MODO_PRUEBA && params.get('script')) || URL_CATALOGO;   // ?script= solo en pruebas locales
@@ -112,18 +113,30 @@ async function cargarCaratulasPendientes() {
       const r = cache && await cache.match(clavePropia('caratula', id)).catch(() => null);
       if (r) entregarCaratula(id, await r.blob());
     }
-    // 2) el resto, del script, de 25 en 25
-    while (esperando.size) {
-      const lote = [...esperando.keys()].slice(0, CARATULAS_POR_PETICION);
-      const datos = JSON.parse(await llamar('caratulas', { ids: lote }));
-      for (const id of lote) {
-        const d = datos && datos[id];
-        if (!d || !/^image\/(jpeg|png|webp)$/.test(d.t)) { esperando.delete(id); continue; }
-        const blob = base64ABlob(d.b, d.t);
-        if (cache) await cache.put(clavePropia('caratula', id), new Response(blob, { headers: { 'Content-Type': d.t } })).catch(() => {});
-        entregarCaratula(id, blob);
+    // 2) el resto, del script: varios lotes a la vez, en el orden de la estantería
+    const cola = [...esperando.keys()];
+    const pedirLote = async lote => {
+      for (let intento = 1; ; intento++) {
+        try {
+          const datos = JSON.parse(await llamar('caratulas', { ids: lote }));
+          for (const id of lote) {
+            const d = datos && datos[id];
+            if (!d || !/^image\/(jpeg|png|webp)$/.test(d.t)) { esperando.delete(id); continue; }
+            const blob = base64ABlob(d.b, d.t);
+            if (cache) await cache.put(clavePropia('caratula', id), new Response(blob, { headers: { 'Content-Type': d.t } })).catch(() => {});
+            entregarCaratula(id, blob);
+          }
+          return;
+        } catch (e) {
+          if (e instanceof SinPermiso || intento >= 3) throw e;
+          await new Promise(r => setTimeout(r, 2000 * intento));   // fallo de red: reintenta
+        }
       }
-    }
+    };
+    const trabajador = async () => {
+      while (cola.length) await pedirLote(cola.splice(0, CARATULAS_POR_PETICION));
+    };
+    await Promise.all(Array.from({ length: PETICIONES_A_LA_VEZ }, trabajador));
   } catch (e) {
     if (e instanceof SinPermiso) mostrarCandado(true);
   } finally {

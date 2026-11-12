@@ -84,29 +84,36 @@ function catalogo_() {
   return cat;
 }
 
-// Solo ficheros que estén DENTRO de su carpeta; cualquier otro id de tu Drive recibe "no".
-function ficheroDe_(id, carpetaId) {
-  if (typeof id !== 'string' || !/^[A-Za-z0-9_-]{10,100}$/.test(id)) return null;
-  let f;
-  try { f = DriveApp.getFileById(id); } catch (err) { return null; }
-  const padres = f.getParents();
-  while (padres.hasNext()) { if (padres.next().getId() === carpetaId) return f; }
-  return null;
+// Solo se entregan ficheros que están en la lista de cuentos (es decir, dentro de sus carpetas).
+// Se comprueba contra la lista en memoria, sin preguntar a Drive por cada fichero (mucho más rápido).
+function permitidos_() {
+  const cat = catalogo_();
+  const audios = {}, caratulas = {};
+  cat.cuentos.forEach(function (c) { audios[c.audio] = true; if (c.caratula) caratulas[c.caratula] = true; });
+  return { audios: audios, caratulas: caratulas };
 }
 
+function idValido_(id) { return typeof id === 'string' && /^[A-Za-z0-9_-]{10,100}$/.test(id); }
+
 function audio_(id) {
-  const f = ficheroDe_(id, PropertiesService.getScriptProperties().getProperty('AUDIOS_ID'));
-  if (!f || f.getSize() > MAX_MB_AUDIO * 1024 * 1024) return texto_('no');
+  if (!idValido_(id) || !permitidos_().audios[id]) return texto_('no');
+  let f;
+  try { f = DriveApp.getFileById(id); } catch (err) { return texto_('no'); }
+  if (f.getSize() > MAX_MB_AUDIO * 1024 * 1024) return texto_('no');
   return texto_(Utilities.base64Encode(f.getBlob().getBytes()));
 }
 
 function caratulas_(ids) {
   if (!Array.isArray(ids)) return texto_('no');
-  const carpeta = PropertiesService.getScriptProperties().getProperty('CARATULAS_ID');
+  const ok = permitidos_().caratulas;
   const out = {};
   ids.slice(0, MAX_CARATULAS_POR_PETICION).forEach(function (id) {
-    const f = ficheroDe_(id, carpeta);
-    if (f && f.getSize() < 2 * 1024 * 1024) out[id] = { t: f.getMimeType(), b: Utilities.base64Encode(f.getBlob().getBytes()) };
+    if (!idValido_(id) || !ok[id]) return;
+    try {
+      const b = DriveApp.getFileById(id).getBlob();
+      const bytes = b.getBytes();
+      if (bytes.length < 2 * 1024 * 1024) out[id] = { t: b.getContentType(), b: Utilities.base64Encode(bytes) };
+    } catch (err) { /* se salta esa carátula */ }
   });
   return json_(out);
 }
