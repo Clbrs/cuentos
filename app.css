@@ -77,7 +77,6 @@ svg { display: block; }
 .libro .sin-caratula { position: absolute; inset: 0; display: grid; place-items: center; }
 .libro .sin-caratula svg { width: 50%; height: 50%; opacity: .9; }
 #rejilla button { display: block; width: 100%; }
-.hueco { visibility: hidden; }
 
 /* ---------- Reproductor ---------- */
 #reproductor {

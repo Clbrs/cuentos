@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icono-192.png">
 <link rel="apple-touch-icon" href="icono-180.png">
-<link rel="stylesheet" href="app.css?v=7">
+<link rel="stylesheet" href="app.css?v=8">
 </head>
 <body>
 
@@ -42,7 +42,9 @@
         <svg class="icono-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5v17a1 1 0 0 0 1.5.86l14-8.5a1 1 0 0 0 0-1.72l-14-8.5A1 1 0 0 0 6 3.5z" fill="currentColor"/></svg>
         <svg class="icono-pausa" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="5" height="17" rx="1.6" fill="currentColor"/><rect x="14" y="3.5" width="5" height="17" rx="1.6" fill="currentColor"/></svg>
       </button>
-      <span class="pequeno hueco" aria-hidden="true"></span>
+      <button class="pequeno" id="adelante" aria-label="Avanzar 15 segundos">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 6l7 6-7 6zM4 6l7 6-7 6z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      </button>
     </div>
   </div>
 </section>
@@ -65,6 +67,6 @@
 
 <audio id="audio" preload="auto"></audio>
 
-<script src="app.js?v=7" defer></script>
+<script src="app.js?v=8" defer></script>
 </body>
 </html>

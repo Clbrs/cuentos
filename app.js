@@ -347,6 +347,11 @@ $('#continuar').addEventListener('click', e => abrir(e.currentTarget.dataset.n))
 $('#volver').addEventListener('click', () => cerrar(false));
 $('#play').addEventListener('click', () => { if (audio.paused) audio.play().catch(() => {}); else audio.pause(); });
 $('#atras').addEventListener('click', () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
+// Avanza 15 s, pero sin llegar al final: un toque de más no da el cuento por terminado
+$('#adelante').addEventListener('click', () => {
+  if (!Number.isFinite(audio.duration)) return;
+  audio.currentTime = Math.min(audio.duration - 2, audio.currentTime + 15);
+});
 window.addEventListener('popstate', () => { if ($('#reproductor').classList.contains('abierto')) cerrar(true); });
 window.addEventListener('pagehide', () => guardarProgreso(true));
 document.addEventListener('visibilitychange', () => { if (document.hidden) guardarProgreso(true); });
